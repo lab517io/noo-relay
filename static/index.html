@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Noo Sync - Admin</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #232733;
+    --border: #2e3345;
+    --text: #e1e4ed;
+    --text2: #8b90a0;
+    --accent: #6c8cff;
+    --accent-dim: #4a62b3;
+    --green: #4caf84;
+    --red: #e05555;
+    --orange: #e0a050;
+    --radius: 8px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+  }
+
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  header h1 {
+    font-size: 18px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  header h1 span { color: var(--accent); }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .server-time { color: var(--text2); font-size: 13px; }
+
+  #login-section {
+    max-width: 360px;
+    margin: 120px auto;
+    padding: 32px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+
+  #login-section h2 { margin-bottom: 20px; font-size: 16px; }
+
+  .form-group { margin-bottom: 16px; }
+  .form-group label { display: block; font-size: 13px; color: var(--text2); margin-bottom: 4px; }
+
+  input[type="text"], input[type="password"] {
+    width: 100%;
+    padding: 8px 12px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    font-size: 14px;
+    outline: none;
+  }
+
+  input:focus { border-color: var(--accent); }
+
+  .btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: opacity 0.15s;
+  }
+
+  .btn:hover { opacity: 0.85; }
+  .btn:disabled { opacity: 0.5; cursor: default; }
+
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-danger { background: var(--red); color: #fff; }
+  .btn-ghost { background: transparent; color: var(--text2); border: 1px solid var(--border); }
+
+  .btn-sm { padding: 4px 10px; font-size: 12px; }
+
+  #login-error { color: var(--red); font-size: 13px; margin-top: 8px; display: none; }
+
+  #dashboard { display: none; }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    padding: 24px;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+  }
+
+  .stat-card .label { font-size: 12px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; }
+  .stat-card .value { font-size: 28px; font-weight: 700; margin-top: 4px; }
+  .stat-card .sub { font-size: 12px; color: var(--text2); margin-top: 2px; }
+
+  .section {
+    margin: 0 24px 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+
+  .section-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .section-header h2 { font-size: 15px; font-weight: 600; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  th {
+    text-align: left;
+    padding: 10px 20px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text2);
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+
+  td {
+    padding: 10px 20px;
+    font-size: 13px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(108, 140, 255, 0.04); }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  .badge-platform { background: var(--surface2); color: var(--text2); }
+
+  .mono { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px; }
+
+  .text-muted { color: var(--text2); }
+  .text-green { color: var(--green); }
+
+  .clickable { cursor: pointer; color: var(--accent); }
+  .clickable:hover { text-decoration: underline; }
+
+  /* Expanded user detail */
+  .detail-row td {
+    padding: 0;
+    background: var(--bg);
+  }
+
+  .detail-content {
+    padding: 16px 20px;
+  }
+
+  .detail-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 12px;
+  }
+
+  .detail-tab {
+    padding: 8px 16px;
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--text2);
+    border-bottom: 2px solid transparent;
+  }
+
+  .detail-tab.active { color: var(--accent); border-color: var(--accent); }
+
+  .detail-panel { display: none; }
+  .detail-panel.active { display: block; }
+
+  .empty-state {
+    text-align: center;
+    padding: 32px;
+    color: var(--text2);
+    font-size: 13px;
+  }
+
+  .refresh-btn {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s;
+  }
+
+  .refresh-btn:hover { transform: scale(1.1); }
+  .refresh-btn.spinning { animation: spin 0.6s linear; }
+
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+  .confirm-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+  }
+
+  .confirm-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    max-width: 400px;
+    width: 90%;
+  }
+
+  .confirm-box h3 { margin-bottom: 12px; }
+  .confirm-box p { color: var(--text2); font-size: 14px; margin-bottom: 20px; }
+  .confirm-actions { display: flex; gap: 8px; justify-content: flex-end; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1><span>&#9673;</span> Noo Sync Admin</h1>
+  <div class="header-right">
+    <span class="server-time" id="server-time"></span>
+    <button class="btn btn-ghost btn-sm" id="logout-btn" style="display:none" onclick="logout()">Logout</button>
+  </div>
+</header>
+
+<!-- Login -->
+<div id="login-section">
+  <h2>Admin Login</h2>
+  <div class="form-group">
+    <label>Admin Token</label>
+    <input type="password" id="token-input" placeholder="Enter admin token" onkeydown="if(event.key==='Enter')doLogin()">
+  </div>
+  <button class="btn btn-primary" style="width:100%" onclick="doLogin()">Login</button>
+  <div id="login-error"></div>
+</div>
+
+<!-- Dashboard -->
+<div id="dashboard">
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="label">Users</div>
+      <div class="value" id="stat-users">-</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Devices</div>
+      <div class="value" id="stat-devices">-</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Changes</div>
+      <div class="value" id="stat-changes">-</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Storage</div>
+      <div class="value" id="stat-storage">-</div>
+      <div class="sub" id="stat-storage-raw"></div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Last Activity</div>
+      <div class="value" id="stat-last" style="font-size:16px">-</div>
+    </div>
+  </div>
+
+  <!-- Users table -->
+  <div class="section">
+    <div class="section-header">
+      <h2>Users</h2>
+      <button class="btn btn-primary btn-sm" onclick="showCreateUser()">+ Create User</button>
+    </div>
+    <div id="create-user-form" style="display:none; padding: 16px 20px; border-bottom: 1px solid var(--border); background: var(--surface2);">
+      <div style="display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap;">
+        <div class="form-group" style="margin-bottom:0; flex:1; min-width:150px">
+          <label>Username</label>
+          <input type="text" id="new-username" placeholder="min 3 characters">
+        </div>
+        <div class="form-group" style="margin-bottom:0; flex:1; min-width:150px">
+          <label>Password</label>
+          <input type="password" id="new-password" placeholder="min 8 characters">
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-primary btn-sm" id="create-user-btn" onclick="doCreateUser()">Create</button>
+          <button class="btn btn-ghost btn-sm" onclick="hideCreateUser()">Cancel</button>
+        </div>
+      </div>
+      <div id="create-user-msg" style="font-size:13px; margin-top:8px; display:none;"></div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Username</th>
+          <th>Created</th>
+          <th>Devices</th>
+          <th>Changes</th>
+          <th>Storage</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="users-table"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Floating refresh -->
+<button class="refresh-btn" id="refresh-btn" onclick="refresh()" title="Refresh" style="display:none">&#8635;</button>
+
+<script>
+const API = window.location.origin + '/api/v2/admin';
+let token = '';
+let expandedUser = null;
+
+// Escape user-controlled values before inserting into innerHTML. Usernames,
+// device ids, device names and platforms are attacker-controlled
+// (register/login/upload), so interpolating them raw would allow stored XSS in
+// the admin origin, where the admin token sits in localStorage.
+//
+// Never interpolate them into an inline event handler (onclick="..."), even
+// escaped: the HTML parser decodes entities before the JS parser runs, so no
+// single escaping is safe there. Attach handlers with addEventListener.
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, ch => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  })[ch]);
+}
+
+function doLogin() {
+  token = document.getElementById('token-input').value.trim();
+  if (!token) return;
+  fetch(API + '/stats', { headers: { 'Authorization': 'Bearer ' + token } })
+    .then(r => {
+      if (!r.ok) throw new Error('Invalid token');
+      return r.json();
+    })
+    .then(() => {
+      localStorage.setItem('noo_admin_token', token);
+      showDashboard();
+    })
+    .catch(() => {
+      const el = document.getElementById('login-error');
+      el.textContent = 'Invalid admin token';
+      el.style.display = 'block';
+    });
+}
+
+function logout() {
+  token = '';
+  localStorage.removeItem('noo_admin_token');
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('login-section').style.display = 'block';
+  document.getElementById('logout-btn').style.display = 'none';
+  document.getElementById('refresh-btn').style.display = 'none';
+  document.getElementById('token-input').value = '';
+}
+
+function showDashboard() {
+  document.getElementById('login-section').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'block';
+  document.getElementById('logout-btn').style.display = 'inline-block';
+  document.getElementById('refresh-btn').style.display = 'flex';
+  loadAll();
+}
+
+function api(path) {
+  return fetch(API + path, { headers: { 'Authorization': 'Bearer ' + token } }).then(r => {
+    if (!r.ok) throw new Error('API error ' + r.status);
+    return r.json();
+  });
+}
+
+function formatBytes(bytes) {
+  if (bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+}
+
+function formatTime(iso) {
+  if (!iso) return '-';
+  const d = new Date(iso);
+  const now = new Date();
+  const diff = (now - d) / 1000;
+  if (diff < 60) return Math.floor(diff) + 's ago';
+  if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+  if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+  return Math.floor(diff / 86400) + 'd ago';
+}
+
+function formatDate(iso) {
+  if (!iso) return '-';
+  return new Date(iso).toLocaleString();
+}
+
+async function loadAll() {
+  try {
+    const [stats, users] = await Promise.all([api('/stats'), api('/users')]);
+
+    document.getElementById('stat-users').textContent = stats.user_count;
+    document.getElementById('stat-devices').textContent = stats.device_count;
+    document.getElementById('stat-changes').textContent = stats.change_count.toLocaleString();
+    document.getElementById('stat-storage').textContent = formatBytes(stats.storage_bytes);
+    document.getElementById('stat-storage-raw').textContent = stats.storage_bytes.toLocaleString() + ' bytes';
+    document.getElementById('stat-last').textContent = stats.last_change_at ? formatTime(stats.last_change_at) : 'No activity';
+    document.getElementById('server-time').textContent = formatDate(stats.server_time);
+
+    renderUsers(users);
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+function renderUsers(users) {
+  const tbody = document.getElementById('users-table');
+  tbody.innerHTML = '';
+
+  if (users.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No users registered</td></tr>';
+    return;
+  }
+
+  users.forEach(u => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="mono">${u.id}</td>
+      <td><span class="clickable" data-action="toggle">${escapeHtml(u.username)}</span></td>
+      <td class="text-muted">${formatDate(u.created_at)}</td>
+      <td>${u.device_count}</td>
+      <td>${u.total_changes.toLocaleString()}</td>
+      <td>${formatBytes(u.storage_bytes)}</td>
+      <td><button class="btn btn-danger btn-sm" data-action="delete">Delete</button></td>
+    `;
+    tr.querySelector('[data-action="toggle"]').addEventListener('click', e => toggleUser(u.id, e.currentTarget));
+    tr.querySelector('[data-action="delete"]').addEventListener('click', () => confirmDelete(u.id, u.username));
+    tbody.appendChild(tr);
+
+    // Detail row (hidden by default)
+    const detailTr = document.createElement('tr');
+    detailTr.className = 'detail-row';
+    detailTr.id = 'detail-' + u.id;
+    detailTr.style.display = 'none';
+    detailTr.innerHTML = `<td colspan="7"><div class="detail-content" id="detail-content-${u.id}">Loading...</div></td>`;
+    tbody.appendChild(detailTr);
+  });
+}
+
+async function toggleUser(userId, el) {
+  const row = document.getElementById('detail-' + userId);
+  if (expandedUser === userId) {
+    row.style.display = 'none';
+    expandedUser = null;
+    return;
+  }
+
+  // Close previous
+  if (expandedUser !== null) {
+    const prev = document.getElementById('detail-' + expandedUser);
+    if (prev) prev.style.display = 'none';
+  }
+
+  expandedUser = userId;
+  row.style.display = '';
+  const container = document.getElementById('detail-content-' + userId);
+  container.innerHTML = 'Loading...';
+
+  try {
+    const [devices, changes] = await Promise.all([
+      api('/users/' + userId + '/devices'),
+      api('/users/' + userId + '/changes?limit=30'),
+    ]);
+
+    let html = `
+      <div class="detail-tabs">
+        <div class="detail-tab active" onclick="switchTab(${userId}, 'devices', this)">Devices (${devices.length})</div>
+        <div class="detail-tab" onclick="switchTab(${userId}, 'changes', this)">Recent Changes (${changes.length})</div>
+      </div>
+      <div class="detail-panel active" id="panel-devices-${userId}">
+    `;
+
+    if (devices.length === 0) {
+      html += '<div class="empty-state">No devices</div>';
+    } else {
+      html += `<table><thead><tr>
+        <th>Device ID</th><th>Name</th><th>Platform</th><th>Registered</th><th>Last Seen</th><th>Stream</th>
+      </tr></thead><tbody>`;
+      devices.forEach(d => {
+        html += `<tr>
+          <td class="mono" style="font-size:11px">${escapeHtml(d.device_id.substring(0, 8))}...</td>
+          <td>${escapeHtml(d.device_name)}</td>
+          <td><span class="badge badge-platform">${escapeHtml(d.platform || 'unknown')}</span></td>
+          <td class="text-muted">${formatDate(d.created_at)}</td>
+          <td>${formatTime(d.last_seen)}</td>
+          <td class="mono">${d.stream_counter}</td>
+        </tr>`;
+      });
+      html += '</tbody></table>';
+    }
+
+    html += `</div><div class="detail-panel" id="panel-changes-${userId}">`;
+
+    if (changes.length === 0) {
+      html += '<div class="empty-state">No changes</div>';
+    } else {
+      html += `<table><thead><tr>
+        <th>Counter</th><th>Device</th><th>Stored</th><th>Size</th>
+      </tr></thead><tbody>`;
+      changes.forEach(c => {
+        html += `<tr>
+          <td class="mono">${c.counter}</td>
+          <td class="mono" style="font-size:11px">${escapeHtml(c.origin_device_id.substring(0, 8))}...</td>
+          <td class="text-muted">${formatDate(c.stored_at)}</td>
+          <td>${formatBytes(c.payload_size)}</td>
+        </tr>`;
+      });
+      html += '</tbody></table>';
+    }
+
+    html += '</div>';
+    container.innerHTML = html;
+  } catch (e) {
+    container.innerHTML = '<div class="empty-state">Failed to load details</div>';
+  }
+}
+
+function switchTab(userId, tab, el) {
+  // Toggle tab active states
+  el.parentElement.querySelectorAll('.detail-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+
+  // Toggle panels
+  const parent = el.closest('.detail-content');
+  parent.querySelectorAll('.detail-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + tab + '-' + userId).classList.add('active');
+}
+
+function confirmDelete(userId, username) {
+  const overlay = document.createElement('div');
+  overlay.className = 'confirm-overlay';
+  overlay.innerHTML = `
+    <div class="confirm-box">
+      <h3>Delete User</h3>
+      <p>Permanently delete <strong>${escapeHtml(username)}</strong> and all their data (devices, changes)?<br>This cannot be undone.</p>
+      <div class="confirm-actions">
+        <button class="btn btn-ghost" onclick="this.closest('.confirm-overlay').remove()">Cancel</button>
+        <button class="btn btn-danger" onclick="doDelete(${userId}, this)">Delete</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+}
+
+async function doDelete(userId, btn) {
+  btn.disabled = true;
+  btn.textContent = 'Deleting...';
+  try {
+    await fetch(API + '/users/' + userId, {
+      method: 'DELETE',
+      headers: { 'Authorization': 'Bearer ' + token },
+    });
+    btn.closest('.confirm-overlay').remove();
+    expandedUser = null;
+    await loadAll();
+  } catch (e) {
+    btn.textContent = 'Error';
+  }
+}
+
+function showCreateUser() {
+  document.getElementById('create-user-form').style.display = 'block';
+  document.getElementById('new-username').value = '';
+  document.getElementById('new-password').value = '';
+  document.getElementById('create-user-msg').style.display = 'none';
+  document.getElementById('new-username').focus();
+}
+
+function hideCreateUser() {
+  document.getElementById('create-user-form').style.display = 'none';
+}
+
+async function doCreateUser() {
+  const username = document.getElementById('new-username').value.trim();
+  const password = document.getElementById('new-password').value;
+  const msg = document.getElementById('create-user-msg');
+  const btn = document.getElementById('create-user-btn');
+
+  if (username.length < 3) {
+    msg.textContent = 'Username must be at least 3 characters';
+    msg.style.color = 'var(--red)';
+    msg.style.display = 'block';
+    return;
+  }
+  if (password.length < 8) {
+    msg.textContent = 'Password must be at least 8 characters';
+    msg.style.color = 'var(--red)';
+    msg.style.display = 'block';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Creating...';
+  msg.style.display = 'none';
+
+  try {
+    const r = await fetch(API + '/users', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }),
+    });
+    const data = await r.json();
+    if (!r.ok) {
+      msg.textContent = data.detail || 'Failed to create user';
+      msg.style.color = 'var(--red)';
+      msg.style.display = 'block';
+    } else {
+      msg.textContent = 'User "' + data.username + '" created successfully';
+      msg.style.color = 'var(--green)';
+      msg.style.display = 'block';
+      document.getElementById('new-username').value = '';
+      document.getElementById('new-password').value = '';
+      await loadAll();
+    }
+  } catch (e) {
+    msg.textContent = 'Network error: ' + e.message;
+    msg.style.color = 'var(--red)';
+    msg.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Create';
+  }
+}
+
+function refresh() {
+  const btn = document.getElementById('refresh-btn');
+  btn.classList.add('spinning');
+  loadAll().finally(() => {
+    setTimeout(() => btn.classList.remove('spinning'), 600);
+  });
+}
+
+// Auto-login from stored token
+const stored = localStorage.getItem('noo_admin_token');
+if (stored) {
+  token = stored;
+  fetch(API + '/stats', { headers: { 'Authorization': 'Bearer ' + token } })
+    .then(r => { if (r.ok) showDashboard(); else logout(); })
+    .catch(() => logout());
+}
+
+// Auto-refresh every 30s
+setInterval(() => { if (token) loadAll(); }, 30000);
+</script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+# Local databases (the relay stores its SQLite file next to the app by default)
+*.db
+*.db-wal
+*.db-shm
+
+# Environment / secrets
+.env
+*.env
+!.env.example
+
+# Go build output (the binary is built, not committed)
+/go/relay
+/go/cmd/relay/relay
+
+# Cross-compiled deploy artefact
+/build/
